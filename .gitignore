@@ -6,3 +6,5 @@
 
 **/*.pyc
 **/*.duckdb
+**/data
+**/tmp*
