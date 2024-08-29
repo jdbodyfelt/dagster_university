@@ -35,7 +35,7 @@ def manhattan_stats(database: DuckDBResource) -> None:
     trips_by_zone["geometry"] = gpd.GeoSeries.from_wkt(trips_by_zone["geometry"])
     trips_by_zone = gpd.GeoDataFrame(trips_by_zone)
 
-    with open(constants.MANHATTAN_STATS_FILE_PATH, mode='w', encoding='utf8') as output_file:
+    with open(constants.MANHATTAN_STATS_FILE_PATH, mode='w', encoding='utf-8') as output_file:
         output_file.write(trips_by_zone.to_json())
 
 #/***********************************************************************/
