@@ -9,6 +9,7 @@ Requires-Dist: kaleido
 Requires-Dist: pandas
 Requires-Dist: plotly
 Requires-Dist: shapely
+Requires-Dist: pyarrow
 Provides-Extra: dev
 Requires-Dist: dagster-webserver; extra == "dev"
 Requires-Dist: pytest; extra == "dev"

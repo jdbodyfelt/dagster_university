@@ -1,12 +1,20 @@
 import requests
 from . import constants
-from dagster import asset, AssetExecutionContext
+import pyarrow.parquet as pq
+import pyarrow.csv as csv
+
+from dagster import (
+    asset,
+    AssetExecutionContext,
+    MaterializeResult,
+    MetadataValue
+)
 from dagster_duckdb import DuckDBResource
 from ..partitions import monthly_partition
 
 #/***********************************************************************/
-@asset(partitions_def=monthly_partition)
-def taxi_trips_file(context: AssetExecutionContext) -> None:
+@asset(partitions_def=monthly_partition, group_name="raw_files")
+def taxi_trips_file(context: AssetExecutionContext) -> MaterializeResult:
     """
       The raw parquet files for the taxi trips dataset. Sourced from the NYC Open Data portal.
     """
@@ -15,13 +23,21 @@ def taxi_trips_file(context: AssetExecutionContext) -> None:
     raw_trips = requests.get(
         f"https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_{month_to_fetch}.parquet"
     )
-
-    with open(constants.TAXI_TRIPS_TEMPLATE_FILE_PATH.format(month_to_fetch), "wb") as output_file:
+    filename = constants.TAXI_TRIPS_TEMPLATE_FILE_PATH.format(month_to_fetch)
+    with open(filename, "wb") as output_file:
         output_file.write(raw_trips.content)
+    num_rows = pq.read_table(filename).num_rows
+    return MaterializeResult(
+    metadata={
+        'Number of records': MetadataValue.int(num_rows)
+    }
+)
+
+
 
 #/***********************************************************************/
-@asset
-def taxi_zones_file() -> None:
+@asset(group_name="raw_files")
+def taxi_zones_file() -> MaterializeResult:
     """
        The raw CSV file containing unique identifiers and names for each part of NYC as a 
        distinct taxi zone. Sourced from the NYC Open Data portal.
@@ -30,11 +46,19 @@ def taxi_zones_file() -> None:
     raw_zones = requests.get(url)
     with open(constants.TAXI_ZONES_FILE_PATH, "wb") as output_file:
         output_file.write(raw_zones.content)
+    num_rows = csv.read_csv(constants.TAXI_ZONES_FILE_PATH).num_rows
+    return MaterializeResult(
+        metadata={
+            'Number of records': MetadataValue.int(num_rows)
+        }
+    )
+    
 
 #/***********************************************************************/
 @asset( 
     deps=["taxi_trips_file"],
-    partitions_def=monthly_partition
+    partitions_def=monthly_partition,
+    group_name="ingested"
 )
 def taxi_trips(context: AssetExecutionContext, database: DuckDBResource) -> None:
     """
@@ -69,7 +93,7 @@ def taxi_trips(context: AssetExecutionContext, database: DuckDBResource) -> None
         conn.execute(query)
 
 #/***********************************************************************/
-@asset( deps=["taxi_zones_file"] )
+@asset( deps=["taxi_zones_file"], group_name="ingested" )
 def taxi_zones(database: DuckDBResource) -> None:
     """
       The raw taxi zones dataset, loaded into a DuckDB database

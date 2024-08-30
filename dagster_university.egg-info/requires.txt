@@ -6,6 +6,7 @@ kaleido
 pandas
 plotly
 shapely
+pyarrow
 
 [dev]
 dagster-webserver
