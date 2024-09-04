@@ -1,0 +1,5 @@
+version: 2
+
+models:
+  - name: location_metrics
+    description: Yada Yada
