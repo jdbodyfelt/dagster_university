@@ -3,6 +3,7 @@ pyproject.toml
 setup.cfg
 setup.py
 dagster_university/__init__.py
+dagster_university/project.py
 dagster_university.egg-info/PKG-INFO
 dagster_university.egg-info/SOURCES.txt
 dagster_university.egg-info/dependency_links.txt
@@ -10,6 +11,7 @@ dagster_university.egg-info/requires.txt
 dagster_university.egg-info/top_level.txt
 dagster_university/assets/__init__.py
 dagster_university/assets/constants.py
+dagster_university/assets/dbt.py
 dagster_university/assets/metrics.py
 dagster_university/assets/requests.py
 dagster_university/assets/trips.py

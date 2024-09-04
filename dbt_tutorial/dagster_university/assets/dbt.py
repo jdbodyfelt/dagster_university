@@ -1,8 +1,16 @@
+import json
+
 from dagster import AssetExecutionContext, AssetKey
-from dagster_dbt import dbt_assets, DbtCliResource, DagsterDbtTranslator
+from dagster_dbt import (
+    dbt_assets, DbtCliResource, DagsterDbtTranslator
+)
 
 from ..project import dbt_project
+from ..partitions import daily_partition
 
+INCREMENTAL_SELECTOR = "config.materialized:incremental"
+
+#/********************************************************************/
 
 class CustomizedDagsterDbtTranslator(DagsterDbtTranslator):
     """
@@ -30,13 +38,30 @@ class CustomizedDagsterDbtTranslator(DagsterDbtTranslator):
     def get_group_name(self, dbt_resource_props):
         return dbt_resource_props["fqn"][1]
 
-       
-
+#/********************************************************************/
 @dbt_assets(
     manifest=dbt_project.manifest_path,
-    dagster_dbt_translator=CustomizedDagsterDbtTranslator()
+    dagster_dbt_translator=CustomizedDagsterDbtTranslator(),
+    exclude=INCREMENTAL_SELECTOR
 )
 def dbt_analytics(context: AssetExecutionContext, dbt: DbtCliResource):
     """"""
     yield from dbt.cli(["build"], context=context).stream()
-    
+
+#/********************************************************************/
+@dbt_assets(
+    manifest=dbt_project.manifest_path,
+    dagster_dbt_translator=CustomizedDagsterDbtTranslator(),
+    select=INCREMENTAL_SELECTOR,
+    partitions_def=daily_partition
+)
+def incremental_dbt_models(
+    context: AssetExecutionContext,
+    dbt: DbtCliResource
+):
+    time_window = context.partition_time_window
+    dbt_vars = {
+        "min_date": time_window.start.strftime('%Y-%m-%d'),
+        "max_date": time_window.end.strftime('%Y-%m-%d')
+    }
+    yield from dbt.cli(["build", "--vars", json.dumps(dbt_vars)], context=context).stream()
