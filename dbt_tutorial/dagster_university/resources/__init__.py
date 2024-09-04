@@ -3,6 +3,11 @@ import os
 import boto3
 from dagster import EnvVar
 from dagster_duckdb import DuckDBResource
+from dagster_dbt import DbtCliResource
+
+from ..project import dbt_project
+
+#/********************************************************************/
 
 database_resource = DuckDBResource(
     database=EnvVar("DUCKDB_DATABASE"),
@@ -17,3 +22,6 @@ if os.getenv("DAGSTER_ENVIRONMENT") == "prod":
     smart_open_config = {"client": session.client("s3")}
 else:
     smart_open_config = {}
+
+
+dbt_resource = DbtCliResource(project_dir=dbt_project)
