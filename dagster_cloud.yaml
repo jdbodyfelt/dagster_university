@@ -1,6 +1,6 @@
 locations:
-  - module_name: dbt_tutorial
+  - module_name: dagster_university
     location_name: dbt_tutorial
     code_source:
-      package_name: dbt_tutorial
-      relative_path: dbt_tutorial
+      package_name: dagster_university
+      relative_path: dbt_tutorial/dagster_university
