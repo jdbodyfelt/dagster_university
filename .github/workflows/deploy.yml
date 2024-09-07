@@ -41,6 +41,15 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
           path: project-repo
+
+      - name: Prepare DBT project for deployment
+        if: steps.prerun.outputs.result == 'pex-deploy'
+        shell: bash
+        run: |
+            python -m pip install pip --upgrade
+            cd project-repo
+            pip install . --upgrade --upgrade-strategy eager
+            dagster-dbt project prepare-and-package --file dagster_university/project.py
           
       - name: Python Executable Deploy
         if: steps.prerun.outputs.result == 'pex-deploy'
