@@ -15,6 +15,7 @@ env:
   ENABLE_FAST_DEPLOYS: 'true'
   PYTHON_VERSION: '3.8'
   DAGSTER_CLOUD_FILE: 'dagster_cloud.yaml'
+  DAGSTER_PROJECT: 'dbt_tutorial'
 
 jobs:
   dagster_cloud_default_deploy:
@@ -46,13 +47,11 @@ jobs:
         if: steps.prerun.outputs.result == 'pex-deploy'
         run: |
             python -m pip install pip --upgrade
-            cd project-repo
-            ls
+            cd project-repo/$DAGSTER_PROJECT
             pip install . --upgrade --upgrade-strategy eager
             dagster-dbt project prepare-and-package --file dagster_university/project.py
         shell: bash
 
-          
       - name: Python Executable Deploy
         if: steps.prerun.outputs.result == 'pex-deploy'
         uses: dagster-io/dagster-cloud-action/actions/build_deploy_python_executable@v0.1
